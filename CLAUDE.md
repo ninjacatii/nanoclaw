@@ -42,6 +42,15 @@ npm run build        # Compile TypeScript
 ./container/build.sh # Rebuild agent container
 ```
 
+**Important:** Before restarting the service, always run the cleanup script first:
+
+```bash
+./scripts/cleanup-nanoclaw.sh  # Must run before restart
+npm run dev
+```
+
+This prevents port conflicts (3001) and stale process issues.
+
 Service management:
 ```bash
 # macOS (launchd)

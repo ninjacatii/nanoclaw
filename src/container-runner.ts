@@ -12,6 +12,7 @@ import {
   ANTHROPIC_BASE_URL,
   CONTAINER_IMAGE,
   CONTAINER_MAX_OUTPUT_SIZE,
+  CONTAINER_MEMORY_LIMIT,
   CONTAINER_TIMEOUT,
   CREDENTIAL_PROXY_PORT,
   DATA_DIR,
@@ -220,6 +221,9 @@ function buildContainerArgs(
   containerName: string,
 ): string[] {
   const args: string[] = ['run', '-i', '--rm', '--name', containerName];
+
+  // Memory limit to prevent OOM kills
+  args.push('-m', CONTAINER_MEMORY_LIMIT);
 
   // Pass host timezone so container's local time matches the user's
   args.push('-e', `TZ=${TIMEZONE}`);
