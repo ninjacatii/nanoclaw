@@ -7,6 +7,9 @@ import fs from 'fs';
 import path from 'path';
 
 import {
+  ANTHROPIC_MODEL,
+  ANTHROPIC_AUTH_TOKEN,
+  ANTHROPIC_BASE_URL,
   CONTAINER_IMAGE,
   CONTAINER_MAX_OUTPUT_SIZE,
   CONTAINER_TIMEOUT,
@@ -221,21 +224,47 @@ function buildContainerArgs(
   // Pass host timezone so container's local time matches the user's
   args.push('-e', `TZ=${TIMEZONE}`);
 
-  // Route API traffic through the credential proxy (containers never see real secrets)
-  args.push(
-    '-e',
-    `ANTHROPIC_BASE_URL=http://${CONTAINER_HOST_GATEWAY}:${CREDENTIAL_PROXY_PORT}`,
+  // Check if using a custom compatible endpoint (e.g., Azure OpenAI, Ollama, Dashscope)
+  // If so, pass auth directly instead of going through credential proxy
+  const useCustomEndpoint = !!ANTHROPIC_BASE_URL;
+  logger.info(
+    { useCustomEndpoint, baseUrl: ANTHROPIC_BASE_URL, model: ANTHROPIC_MODEL, hasAuthToken: !!ANTHROPIC_AUTH_TOKEN },
+    'Container environment config',
   );
 
-  // Mirror the host's auth method with a placeholder value.
-  // API key mode: SDK sends x-api-key, proxy replaces with real key.
-  // OAuth mode:   SDK exchanges placeholder token for temp API key,
-  //               proxy injects real OAuth token on that exchange request.
-  const authMode = detectAuthMode();
-  if (authMode === 'api-key') {
-    args.push('-e', 'ANTHROPIC_API_KEY=placeholder');
+  if (useCustomEndpoint) {
+    // Direct connection to compatible endpoint
+    args.push('-e', `ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL}`);
+    // Pass auth token if provided (some endpoints don't require auth)
+    if (ANTHROPIC_AUTH_TOKEN) {
+      // SDK uses ANTHROPIC_API_KEY for authentication, map ANTHROPIC_AUTH_TOKEN to it
+      args.push('-e', `ANTHROPIC_API_KEY=${ANTHROPIC_AUTH_TOKEN}`);
+    }
+    if (ANTHROPIC_MODEL) {
+      args.push('-e', `ANTHROPIC_MODEL=${ANTHROPIC_MODEL}`);
+    }
   } else {
-    args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=placeholder');
+    // Route API traffic through the credential proxy (containers never see real secrets)
+    args.push(
+      '-e',
+      `ANTHROPIC_BASE_URL=http://${CONTAINER_HOST_GATEWAY}:${CREDENTIAL_PROXY_PORT}`,
+    );
+
+    // Pass custom model for compatible endpoints
+    if (ANTHROPIC_MODEL) {
+      args.push('-e', `ANTHROPIC_MODEL=${ANTHROPIC_MODEL}`);
+    }
+
+    // Mirror the host's auth method with a placeholder value.
+    // API key mode: SDK sends x-api-key, proxy replaces with real key.
+    // OAuth mode:   SDK exchanges placeholder token for temp API key,
+    //               proxy injects real OAuth token on that exchange request.
+    const authMode = detectAuthMode();
+    if (authMode === 'api-key') {
+      args.push('-e', 'ANTHROPIC_API_KEY=placeholder');
+    } else {
+      args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=placeholder');
+    }
   }
 
   // Runtime-specific args for host gateway resolution

@@ -32,6 +32,7 @@ export function startCredentialProxy(
     'CLAUDE_CODE_OAUTH_TOKEN',
     'ANTHROPIC_AUTH_TOKEN',
     'ANTHROPIC_BASE_URL',
+    'ANTHROPIC_MODEL',
   ]);
 
   const authMode: AuthMode = secrets.ANTHROPIC_API_KEY ? 'api-key' : 'oauth';
@@ -41,11 +42,14 @@ export function startCredentialProxy(
   const upstreamUrl = new URL(
     secrets.ANTHROPIC_BASE_URL || 'https://api.anthropic.com',
   );
+  console.log(`[CredentialProxy] Upstream URL: ${upstreamUrl.href}`);
+  console.log(`[CredentialProxy] Auth mode: ${authMode}`);
   const isHttps = upstreamUrl.protocol === 'https:';
   const makeRequest = isHttps ? httpsRequest : httpRequest;
 
   return new Promise((resolve, reject) => {
     const server = createServer((req, res) => {
+      console.log(`[CredentialProxy] Incoming request: ${req.method} ${req.url}`);
       const chunks: Buffer[] = [];
       req.on('data', (c) => chunks.push(c));
       req.on('end', () => {
@@ -88,6 +92,7 @@ export function startCredentialProxy(
             headers,
           } as RequestOptions,
           (upRes) => {
+            console.log(`[CredentialProxy] Response: ${upRes.statusCode}`);
             res.writeHead(upRes.statusCode!, upRes.headers);
             upRes.pipe(res);
           },
