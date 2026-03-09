@@ -6,7 +6,14 @@ import { readEnvFile } from './env.js';
 // Read config values from .env (falls back to process.env).
 // Secrets (API keys, tokens) are NOT read here — they are loaded only
 // by the credential proxy (credential-proxy.ts), never exposed to containers.
-const envConfig = readEnvFile(['ASSISTANT_NAME', 'ASSISTANT_HAS_OWN_NUMBER', 'TELEGRAM_BOT_POOL', 'ANTHROPIC_MODEL', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL']);
+const envConfig = readEnvFile([
+  'ASSISTANT_NAME',
+  'ASSISTANT_HAS_OWN_NUMBER',
+  'TELEGRAM_BOT_POOL',
+  'ANTHROPIC_MODEL',
+  'ANTHROPIC_AUTH_TOKEN',
+  'ANTHROPIC_BASE_URL',
+]);
 
 export const ASSISTANT_NAME =
   process.env.ASSISTANT_NAME || envConfig.ASSISTANT_NAME || 'Andy';
@@ -83,10 +90,13 @@ export const TELEGRAM_BOT_POOL = (
   .filter(Boolean);
 
 // Model to use for agents (for custom endpoints like Dashscope)
-export const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || envConfig.ANTHROPIC_MODEL || '';
+export const ANTHROPIC_MODEL =
+  process.env.ANTHROPIC_MODEL || envConfig.ANTHROPIC_MODEL || '';
 
 // Auth token for compatible endpoints (e.g., Dashscope)
-export const ANTHROPIC_AUTH_TOKEN = process.env.ANTHROPIC_AUTH_TOKEN || envConfig.ANTHROPIC_AUTH_TOKEN || '';
+export const ANTHROPIC_AUTH_TOKEN =
+  process.env.ANTHROPIC_AUTH_TOKEN || envConfig.ANTHROPIC_AUTH_TOKEN || '';
 
 // Base URL for compatible endpoints (e.g., Dashscope)
-export const ANTHROPIC_BASE_URL = process.env.ANTHROPIC_BASE_URL || envConfig.ANTHROPIC_BASE_URL || '';
+export const ANTHROPIC_BASE_URL =
+  process.env.ANTHROPIC_BASE_URL || envConfig.ANTHROPIC_BASE_URL || '';

@@ -228,7 +228,12 @@ function buildContainerArgs(
   // If so, pass auth directly instead of going through credential proxy
   const useCustomEndpoint = !!ANTHROPIC_BASE_URL;
   logger.info(
-    { useCustomEndpoint, baseUrl: ANTHROPIC_BASE_URL, model: ANTHROPIC_MODEL, hasAuthToken: !!ANTHROPIC_AUTH_TOKEN },
+    {
+      useCustomEndpoint,
+      baseUrl: ANTHROPIC_BASE_URL,
+      model: ANTHROPIC_MODEL,
+      hasAuthToken: !!ANTHROPIC_AUTH_TOKEN,
+    },
     'Container environment config',
   );
 

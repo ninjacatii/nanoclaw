@@ -49,7 +49,9 @@ export function startCredentialProxy(
 
   return new Promise((resolve, reject) => {
     const server = createServer((req, res) => {
-      console.log(`[CredentialProxy] Incoming request: ${req.method} ${req.url}`);
+      console.log(
+        `[CredentialProxy] Incoming request: ${req.method} ${req.url}`,
+      );
       const chunks: Buffer[] = [];
       req.on('data', (c) => chunks.push(c));
       req.on('end', () => {
